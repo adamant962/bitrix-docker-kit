@@ -1,0 +1,20 @@
+.git
+.gitignore
+.env
+.env.example
+.idea
+.osp
+.opencode
+node_modules
+tmp
+debug.txt
+*.log
+*.md
+AGENTS.md
+opencode.json
+
+# Docker-файлы не нужны внутри образов
+docker/
+docker-compose.yml
+docker-compose.*.yml
+README.Docker.md

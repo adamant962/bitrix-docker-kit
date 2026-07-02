@@ -1,0 +1,12 @@
+# Override для принудительного запуска amd64-образов на Apple Silicon (arm64).
+# Используется, когда выбранный образ не поддерживает arm64 (например, mysql:5.7).
+#
+# Запуск:
+#   docker compose -f docker-compose.yml -f docker-compose.platform-amd64.yml up -d
+
+services:
+  php:
+    platform: linux/amd64
+
+  db:
+    platform: linux/amd64

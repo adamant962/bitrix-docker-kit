@@ -1,0 +1,64 @@
+# Project conventions for OpenCode agents
+
+## PROJECT_IDENTITY
+- project: change_me
+- site_template: change_me
+- namespace_psr4: App\Project
+- namespace_src: local/src
+
+## TEMPLATE_PATHS
+- site_template: local/templates/{change_me}
+- components: local/templates/{change_me}/components
+- sprint_editor_public: local/templates/{change_me}/components/sprint.editor/blocks/services
+- sprint_editor_admin_complex: local/admin/sprint.editor/complex
+- sprint_editor_admin_custom: local/admin/sprint.editor/my
+- sprint_editor_settings: local/admin/sprint.editor/settings
+- scripts: local/scripts
+
+## PHP
+- init: local/php_interface/init.php
+- constants: local/php_interface/include/constants.php
+- functions: local/php_interface/include/functions.php
+- debug: local/php_interface/include/debug.php
+
+## FRONTEND_ASSETS
+- css_dir: local/templates/{change_me}/css
+- js_dir: local/templates/{change_me}/js
+- main_css: {change_me}
+- main_js: {change_me}
+- cdn_jquery: {change_me}
+- has_npm: false
+- has_bundler: false
+
+## IBLOCK_CONSTANTS
+# Заполните ID инфоблоков из вашего проекта
+# - IBLOCK_ID_IBLOCK_CODE: 0
+
+## WEB_FORMS
+# - type: bitrix24
+# - forms: click/XXX, inline/XXX
+
+## GIT_CONVENTIONS
+- branch: master
+- prefixes: edit, add, modify
+
+## QUALITY_GATES
+- php_lint: php -l <file>
+- diff_review: git diff -- <file>
+- whitespace_check: git diff --check
+- check_b_prolog: true
+- check_escaping: htmlspecialcharsbx, CUtil::JSEscape, safe JSON
+- check_hardcoded_ids: true
+- check_cache_params: true
+- check_db_in_templates: true
+
+## COMPONENT_OVERRIDES
+# - bitrix:news: ...
+# - bitrix:news.list: ...
+
+## SPRINT_EDITOR_BLOCKS
+# - complex: ...
+# - custom: ...
+
+## SCRIPTS
+# - script_name: path/to/script.php
