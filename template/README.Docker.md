@@ -603,6 +603,41 @@ volumes:
 **Важно:** `upload/` не выносить в anonymous volume — там пользовательские файлы проекта.
 Если выносите `upload/` в named volume, обеспечьте резервное копирование.
 
+### Производительность MySQL в локальном Docker
+
+Если в панели производительности Bitrix низкий показатель:
+
+```text
+База данных MySQL (запись)
+```
+
+это часто связано с безопасными, но медленными настройками InnoDB по умолчанию.
+
+В Docker Kit для локальной разработки используются dev-настройки:
+
+```ini
+innodb_flush_log_at_trx_commit = 2
+sync_binlog = 0
+innodb_buffer_pool_size = 512M
+innodb_log_buffer_size = 64M
+```
+
+Они ускоряют запись в локальной БД, но не являются универсальной production-конфигурацией.
+Особенно `innodb_flush_log_at_trx_commit = 2` и `sync_binlog = 0` ускоряют запись, но при аварийном падении сервера могут снизить гарантию сохранности последних транзакций. Для локального Docker это приемлемо.
+
+После изменения `docker/db/my.cnf` перезапустите БД:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml --profile tools restart db
+docker compose -f docker-compose.yml -f docker-compose.https.yml --profile tools restart php nginx
+```
+
+Проверить применённые параметры:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml --profile tools exec db mysql -uroot -p"$DB_ROOT_PASSWORD" -e "SHOW VARIABLES WHERE Variable_name IN ('innodb_flush_log_at_trx_commit','sync_binlog','innodb_buffer_pool_size','innodb_log_buffer_size','max_allowed_packet','tmp_table_size','max_heap_table_size');"
+```
+
 ### macOS: Synchronized File Shares
 
 Если Docker Desktop подписка позволяет, включите Synchronized File Shares для ускорения обмена файлами между macOS и контейнером.
