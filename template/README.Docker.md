@@ -20,6 +20,7 @@ project-root/
 │   │   ├── Dockerfile                # PHP-FPM (8.0–8.4)
 │   │   ├── php.ini                   # Базовые настройки PHP
 │   │   ├── opcache.ini               # OPcache + APCu
+│   │   ├── msmtprc                   # msmtp → Mailpit
 │   │   └── xdebug.ini                # Xdebug (включается через .env)
 │   ├── db/
 │   │   ├── my.cnf                    # charset/collation MySQL/MariaDB
@@ -430,6 +431,65 @@ docker compose --profile tools up -d
 Сервер БД: `db`
 Пользователь: `bitrix`
 Пароль: из переменной `DB_PASSWORD`
+
+## Почта в Docker: Mailpit + msmtp
+
+Для локальной разработки письма не отправляются наружу, а перехватываются Mailpit.
+Это позволяет пройти проверку Bitrix и видеть письма в web UI.
+
+Запуск без HTTPS:
+
+```bash
+docker compose --profile tools up -d
+```
+
+Запуск с HTTPS:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml --profile tools up -d
+```
+
+Mailpit UI:
+
+```text
+http://localhost:8025
+```
+
+или:
+
+```text
+http://localhost:${MAILPIT_WEB_PORT}
+```
+
+SMTP внутри Docker-сети доступен как `mailpit:1025`.
+PHP отправляет письма через `msmtp`, настроенный в `docker/php/msmtprc`.
+
+Проверка обычного письма от пользователя `www-data`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml --profile tools exec -u www-data php php -r '$headers="From: webmaster@example.com\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit"; var_dump(mail("your-email@example.com", mb_encode_mimeheader("Тестовое письмо","UTF-8"), "Это тестовое письмо", $headers));'
+```
+
+Проверка письма больше 64 КБ:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml --profile tools exec -u www-data php php -r '$headers="From: webmaster@example.com\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=UTF-8\r\nContent-Transfer-Encoding: 8bit"; $body=str_repeat("Строка большого письма\n", 4000); var_dump(strlen($body)); var_dump(mail("your-email@example.com", mb_encode_mimeheader("Большое письмо","UTF-8"), $body, $headers));'
+```
+
+Ожидаемый результат:
+
+```text
+bool(true)
+```
+
+Без ошибок вида:
+
+```text
+msmtp: cannot log to /tmp/msmtp.log
+```
+
+Если письмо появляется в Mailpit, но в выводе есть `cannot log to /tmp/msmtp.log`, нужно убрать `logfile` из `msmtprc`.
+В kit-е `logfile` не используется по умолчанию.
 
 ## Xdebug
 
@@ -994,6 +1054,53 @@ curl -v http://market.loc:8443/
 ```
 
 Это нормально и означает, что 8443 действительно HTTPS-порт.
+
+## HTTPS и mkcert внутри PHP-контейнера
+
+Для Windows + WSL2 есть несколько разных trust store:
+
+1. Windows trust store — нужен для браузера Windows.
+2. WSL trust store — нужен для mkcert/curl в WSL.
+3. PHP container trust store — нужен для PHP/Bitrix-самопроверки.
+
+Если сайт открывается в браузере по HTTPS, но Bitrix показывает ошибку сокетов, проверьте HTTPS-запрос из PHP-контейнера.
+
+Диагностика резолва домена:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml exec php getent hosts ${PROJECT_DOMAIN}
+```
+
+Диагностика HTTPS self-request:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml exec php php -d display_errors=1 -r '$fp=fsockopen("ssl://PROJECT_DOMAIN",443,$e,$s,10); var_dump($fp,$e,$s);'
+```
+
+Замените `PROJECT_DOMAIN` на домен из `.env`, например `market.loc`.
+
+Если ошибка содержит:
+
+```text
+certificate verify failed
+Failed to enable crypto
+```
+
+выполните:
+
+```bash
+bash docker/scripts/install-mkcert-ca-to-php.sh
+```
+
+После этого проверка должна вернуть:
+
+```text
+bool(true)
+int(0)
+string(0) ""
+```
+
+После rebuild/recreate PHP-контейнера root CA внутри контейнера нужно установить снова.
 
 ## Проверка системы Bitrix в Docker
 

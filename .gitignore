@@ -1,0 +1,9 @@
+template/docker/certs/*.crt
+template/docker/certs/*.key
+template/docker/certs/*.pem
+!template/docker/certs/.gitkeep
+
+docker/certs/*.crt
+docker/certs/*.key
+docker/certs/*.pem
+!docker/certs/.gitkeep
