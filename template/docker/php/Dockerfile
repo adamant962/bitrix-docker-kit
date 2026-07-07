@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libzip-dev \
         unzip \
         curl \
+        ca-certificates \
         git \
         libxml2-dev \
         libicu-dev \
