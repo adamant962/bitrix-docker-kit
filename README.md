@@ -8,9 +8,13 @@
 bitrix-docker-kit/
 ├── template/                    # Файлы для копирования в новый проект
 │   ├── docker/                  #   конфиги Nginx, PHP, MySQL, скрипты
+│   │   ├── nginx/https.conf     #   опциональный HTTPS server block
+│   │   └── certs/.gitkeep       #   каталог для локальных сертификатов
 │   ├── docker-compose.yml       #   Compose-файл (5 сервисов)
+│   ├── docker-compose.https.yml #   override для HTTPS
 │   ├── docker-compose.platform-amd64.yml
 │   ├── .env.example             #   шаблон переменных окружения
+│   ├── .gitignore               #   исключения локальных сертификатов
 │   ├── .dockerignore
 │   ├── README.Docker.md         #   документация по Docker
 │   ├── opencode.json            #   конфигурация OpenCode
@@ -28,6 +32,28 @@ bitrix-docker-kit/
 
 Docker — среда выполнения Bitrix. Каждый проект получает изолированные контейнеры
 nginx, php, db, cron, adminer. Подробнее: `template/README.Docker.md`.
+
+### Быстрые команды
+
+```bash
+# HTTP
+docker compose up -d
+
+# HTTPS
+docker compose -f docker-compose.yml -f docker-compose.https.yml up -d
+
+# Проверка Nginx
+docker compose exec nginx nginx -t
+
+# Перезапуск Nginx
+docker compose restart nginx
+```
+
+HTTPS включается только через `docker-compose.https.yml`; базовый HTTP-режим не меняется.
+Для локальных сертификатов используйте `mkcert` и каталог `docker/certs`.
+Не коммитьте реальные `*.crt`, `*.key`, `*.pem`; в репозитории остаётся только `docker/certs/.gitkeep`.
+
+Не используйте `.dev` для локальных доменов из-за HSTS. Рекомендуемые зоны: `.loc`, `.test`.
 
 ## OpenCode agents
 
