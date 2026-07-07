@@ -328,6 +328,60 @@ rm -f "${PROJECT_ROOT:-./www}/bitrixsetup.update"
 bash docker/scripts/fix-permissions.sh
 ```
 
+### Медленная установка Bitrix и 504 Gateway Time-out
+
+Во время установки Bitrix через `bitrixsetup.php` шаг "Обновление продукта" может выполняться долго.
+Bitrix скачивает архивы обновлений, распаковывает файлы и обновляет модули.
+
+Если появляется:
+
+```text
+504 Gateway Time-out nginx/1.27.5
+```
+
+это означает, что Nginx не дождался ответа PHP-FPM.
+
+Docker Kit увеличивает таймауты Nginx/PHP до 600 секунд, но если ошибка повторяется:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml restart nginx php
+```
+
+Проверьте логи:
+
+```bash
+docker compose logs -f nginx
+docker compose logs -f php
+```
+
+Если после 504 Bitrix показывает:
+
+```text
+Временный файл "/var/www/html/bitrix/updates/update_archive.gz" не существует
+```
+
+нажмите "Повторить шаг".
+Если ошибка повторяется, удалите временные файлы:
+
+```bash
+rm -f "${PROJECT_ROOT:-./www}/bitrix/updates/update_archive.gz"
+rm -f "${PROJECT_ROOT:-./www}"/bitrix/updates/*.tmp
+```
+
+и снова нажмите "Повторить шаг".
+
+Проверьте запись в `bitrix/updates`:
+
+```bash
+docker compose exec php sh -lc 'touch /var/www/html/bitrix/updates/.write-test && rm /var/www/html/bitrix/updates/.write-test && echo OK'
+```
+
+Если команда не выводит `OK`, выполните:
+
+```bash
+bash docker/scripts/fix-install-permissions.sh
+```
+
 ## Cron (Bitrix-агенты)
 
 Сервис `cron` вынесен в профиль. Запуск:
