@@ -11,6 +11,7 @@ bitrix-docker-kit/
 │   │   ├── nginx/https.conf     #   опциональный HTTPS server block
 │   │   ├── db/init/01-mysql8-grants.sh
 │   │   ├── scripts/generate-https-cert.sh
+│   │   ├── scripts/install-mkcert-ca-to-php.sh
 │   │   ├── scripts/show-mkcert-ca.sh
 │   │   ├── scripts/fix-install-permissions.sh
 │   │   └── certs/.gitkeep       #   каталог для локальных сертификатов
@@ -52,6 +53,7 @@ docker compose up -d
 # HTTPS
 bash docker/scripts/generate-https-cert.sh
 docker compose -f docker-compose.yml -f docker-compose.https.yml up -d
+bash docker/scripts/install-mkcert-ca-to-php.sh
 
 # Проверка Nginx
 docker compose exec nginx nginx -t
@@ -72,6 +74,21 @@ HTTPS включается только через `docker-compose.https.yml`; �
 Иначе Docker/Nginx может корректно отдавать HTTPS, но браузер будет ругаться на сертификат.
 
 Подробности: `template/README.Docker.md`, раздел “Windows + WSL2: где устанавливать mkcert”.
+
+### Bitrix system check
+
+Для успешной проверки системы Bitrix kit настраивает:
+
+- `sockets`, `curl`, `openssl` в PHP
+- HTTPS через `mkcert`
+- trust root CA внутри PHP-контейнера
+- `PROJECT_DOMAIN` как network alias nginx-контейнера
+- `innodb_strict_mode=0`
+- синхронизацию timezone PHP/MySQL
+- install-friendly таймауты Nginx/PHP
+- права для установки через `fix-install-permissions.sh`
+
+Подробности: `template/README.Docker.md`.
 
 ## OpenCode agents
 

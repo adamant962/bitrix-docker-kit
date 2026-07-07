@@ -44,6 +44,6 @@ echo "test" > "$PROJECT_ROOT/.host-write-test"
 rm -f "$PROJECT_ROOT/.host-write-test"
 
 echo "Checking write access from PHP container..."
-docker compose exec php sh -lc 'touch /var/www/html/.php-write-test && rm /var/www/html/.php-write-test && echo OK'
+docker compose exec php sh -lc 'touch /var/www/html/.write-test && rm /var/www/html/.write-test && echo OK'
 
 echo "Done."

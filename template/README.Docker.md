@@ -32,6 +32,7 @@ project-root/
 │       ├── fix-install-permissions.sh # Права на этапе установки Bitrix
 │       ├── fix-mysql8-grants.sh      # Grants для существующих MySQL 8 volumes
 │       ├── generate-https-cert.sh    # Генерация mkcert-сертификата
+│       ├── install-mkcert-ca-to-php.sh # Доверие mkcert CA внутри PHP-контейнера
 │       └── show-mkcert-ca.sh         # Показ пути к mkcert root CA
 ├── docker-compose.yml                # Основной compose-файл
 ├── docker-compose.https.yml          # Override для HTTPS
@@ -674,6 +675,7 @@ bash docker/scripts/import-db.sh dump.sql
 bash docker/scripts/dump-db.sh dump.sql
 bash docker/scripts/fix-permissions.sh
 bash docker/scripts/generate-https-cert.sh
+bash docker/scripts/install-mkcert-ca-to-php.sh
 bash docker/scripts/fix-mysql8-grants.sh
 ```
 
@@ -723,6 +725,7 @@ docker compose up -d
 # Опционально: сгенерировать сертификат и запустить HTTPS
 bash docker/scripts/generate-https-cert.sh
 docker compose -f docker-compose.yml -f docker-compose.https.yml up -d
+bash docker/scripts/install-mkcert-ca-to-php.sh
 
 # Импортировать дамп базы
 bash docker/scripts/import-db.sh dump.sql
@@ -748,6 +751,10 @@ cp /path/to/bitrix-docker-kit/template/AGENTS.md.example ./AGENTS.md
 HTTPS не включён по умолчанию. Для включения используется `docker-compose.https.yml`.
 Обычный запуск `docker compose up -d` продолжает поднимать HTTP.
 По умолчанию в `.env.example` используется `HTTPS_PORT=8443`, потому что 443 часто занят Windows/IIS/OpenServer/другим Docker-проектом.
+
+Для браузера используется внешний `HTTPS_PORT`, например `https://market.loc:8443`.
+Для PHP-контейнера `PROJECT_DOMAIN` должен указывать на `nginx` внутри Docker-сети.
+Поэтому у сервиса `nginx` используется network alias `${PROJECT_DOMAIN}`.
 
 ### 1. Установить mkcert
 
@@ -776,6 +783,14 @@ mkcert -install
 ### Windows + WSL2: где устанавливать mkcert
 
 Если Docker и проект запущены из WSL, а сайт открывается в браузере Windows, есть два варианта.
+
+Для HTTPS в Windows + WSL2 есть три разных trust store:
+
+1. Windows trust store — нужен для браузера Windows.
+2. WSL trust store — нужен для curl/mkcert в WSL.
+3. PHP container trust store — нужен для Bitrix/PHP self-check.
+
+Если сайт в браузере работает, но Bitrix пишет ошибку сокетов, возможно, PHP-контейнер не доверяет mkcert CA.
 
 #### Вариант A - mkcert в Windows
 
@@ -830,6 +845,25 @@ Win + R -> certmgr.msc
 
 ```bash
 bash docker/scripts/show-mkcert-ca.sh
+```
+
+После запуска PHP-контейнера установите root CA внутрь контейнера:
+
+```bash
+bash docker/scripts/install-mkcert-ca-to-php.sh
+```
+
+Короткая последовательность для HTTPS:
+
+```bash
+# 1. Сгенерировать сертификат
+bash docker/scripts/generate-https-cert.sh
+
+# 2. Импортировать rootCA.pem в Windows, если браузер Windows не доверяет сертификату
+cp "$(mkcert -CAROOT)/rootCA.pem" /mnt/c/Users/<USERNAME>/Desktop/mkcert-rootCA.pem
+
+# 3. Установить root CA внутрь PHP-контейнера
+bash docker/scripts/install-mkcert-ca-to-php.sh
 ```
 
 ### 2. Добавить домен в hosts
@@ -960,6 +994,60 @@ curl -v http://market.loc:8443/
 ```
 
 Это нормально и означает, что 8443 действительно HTTPS-порт.
+
+## Проверка системы Bitrix в Docker
+
+Проверить PHP-расширения для сетевых запросов:
+
+```bash
+docker compose exec php php -m | grep -Ei "curl|openssl|sockets"
+```
+
+Проверить функции sockets/streams:
+
+```bash
+docker compose exec php php -r 'var_dump(function_exists("fsockopen"), function_exists("stream_socket_client"), function_exists("socket_create"));'
+```
+
+Проверить внешний HTTPS из PHP-контейнера:
+
+```bash
+docker compose exec php php -r '$fp=@fsockopen("ssl://www.1c-bitrix.ru",443,$e,$s,10); var_dump((bool)$fp,$e,$s);'
+docker compose exec php php -r 'var_dump(@file_get_contents("https://www.1c-bitrix.ru") !== false);'
+```
+
+Если внешние проверки `www.1c-bitrix.ru` успешны, sockets/curl/openssl работают.
+
+Проверить резолв локального домена внутри PHP-контейнера:
+
+```bash
+docker compose exec php getent hosts ${PROJECT_DOMAIN}
+```
+
+`PROJECT_DOMAIN` должен резолвиться в `nginx` внутри Docker-сети через network alias.
+Не добавляйте `extra_hosts: ${PROJECT_DOMAIN}:host-gateway` в `php` или `cron`: PHP начнёт ходить на хост, и самопроверка Bitrix может получить `Connection refused`, особенно если внешний HTTPS-порт не 443.
+
+Проверить HTTPS self-request к локальному домену внутри Docker-сети:
+
+```bash
+docker compose exec php php -d display_errors=1 -r '$fp=fsockopen("ssl://PROJECT_DOMAIN",443,$e,$s,10); var_dump($fp,$e,$s);'
+```
+
+Замените `PROJECT_DOMAIN` на домен из `.env`, например `market.loc`.
+Если `ssl://PROJECT_DOMAIN:443` падает с `certificate verify failed`, установите mkcert root CA внутрь PHP-контейнера:
+
+```bash
+bash docker/scripts/install-mkcert-ca-to-php.sh
+```
+
+Проверить MySQL strict mode и время:
+
+```bash
+docker compose exec db mysql -uroot -p"$DB_ROOT_PASSWORD" -e "SHOW VARIABLES LIKE 'innodb_strict_mode'; SELECT NOW(), @@global.time_zone, @@system_time_zone;"
+```
+
+Если время БД отличается на 10800 секунд, проверьте `TZ=Europe/Moscow` и `DB_TIMEZONE=+03:00` в `.env`.
+Если `innodb_strict_mode=ON`, проверьте `--innodb-strict-mode=0` в `docker-compose.yml`.
 
 ## Reverse proxy (перспектива)
 
