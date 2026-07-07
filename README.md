@@ -37,6 +37,12 @@ bitrix-docker-kit/
 Docker — среда выполнения Bitrix. Каждый проект получает изолированные контейнеры
 nginx, php, db, cron, adminer. Подробнее: `template/README.Docker.md`.
 
+Для установки Bitrix через `bitrixsetup.php` есть отдельный скрипт прав, который сохраняет доступ и PHP-контейнеру, и пользователю WSL/IDE:
+
+```bash
+bash docker/scripts/fix-install-permissions.sh
+```
+
 ### Быстрые команды
 
 ```bash
