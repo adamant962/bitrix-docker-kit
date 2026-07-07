@@ -12,7 +12,10 @@
 project-root/
 ├── docker/
 │   ├── nginx/
-│   │   └── default.conf              # Nginx под Bitrix
+│   │   ├── default.conf              # HTTP Nginx под Bitrix
+│   │   └── https.conf                # HTTPS Nginx под Bitrix
+│   ├── certs/
+│   │   └── .gitkeep                  # Каталог для локальных сертификатов
 │   ├── php/
 │   │   ├── Dockerfile                # PHP-FPM (8.0–8.4)
 │   │   ├── php.ini                   # Базовые настройки PHP
@@ -26,8 +29,10 @@ project-root/
 │       ├── dump-db.sh                # Создание дампа
 │       └── fix-permissions.sh        # Права на cache/upload
 ├── docker-compose.yml                # Основной compose-файл
+├── docker-compose.https.yml          # Override для HTTPS
 ├── docker-compose.platform-amd64.yml # Override для arm64 → amd64
 ├── .env.example                      # Шаблон переменных окружения
+├── .gitignore                        # Исключения локальных сертификатов
 ├── .dockerignore                     # Исключения для сборки
 └── README.Docker.md                  # Этот файл
 ```
@@ -391,6 +396,7 @@ volumes:
 ```bash
 # Проверка конфигурации
 docker compose config
+docker compose -f docker-compose.yml -f docker-compose.https.yml config
 
 # Сборка
 docker compose build
@@ -398,8 +404,17 @@ docker compose build
 # Запуск
 docker compose up -d
 
+# Запуск с HTTPS
+docker compose -f docker-compose.yml -f docker-compose.https.yml up -d
+
 # Статус
 docker compose ps
+
+# Проверка Nginx
+docker compose exec nginx nginx -t
+
+# Перезапуск Nginx
+docker compose restart nginx
 
 # Логи
 docker compose logs -f nginx
@@ -434,6 +449,7 @@ docker compose exec db uname -m
 |---|---|---|
 | `COMPOSE_PROJECT_NAME` | **Да** | Определяет имя проекта и префикс container_name |
 | `HTTP_PORT` | **Да** | Порт на хосте — конфликт при overlap |
+| `HTTPS_PORT` | **Да**, если включён HTTPS | Порт HTTPS на хосте — 443 обычно доступен только одному проекту |
 | `DB_PORT_EXTERNAL` | **Да** (если опубликован) | Порт БД на хосте для внешних клиентов |
 | `ADMINER_PORT` | **Да** (если запущен Adminer) | Порт Adminer на хосте |
 | `DB_DATABASE` | Желательно | Технически может совпадать при отдельных db-контейнерах |
@@ -509,14 +525,18 @@ bash docker/scripts/fix-permissions.sh
 # Скопировать файлы Docker Kit в проект
 cp -R /path/to/bitrix-docker-kit/template/docker ./docker
 cp /path/to/bitrix-docker-kit/template/docker-compose.yml ./docker-compose.yml
+cp /path/to/bitrix-docker-kit/template/docker-compose.https.yml ./docker-compose.https.yml
 cp /path/to/bitrix-docker-kit/template/docker-compose.platform-amd64.yml ./docker-compose.platform-amd64.yml
+cp /path/to/bitrix-docker-kit/template/.gitignore ./.gitignore
 cp /path/to/bitrix-docker-kit/template/.dockerignore ./.dockerignore
 cp /path/to/bitrix-docker-kit/template/README.Docker.md ./README.Docker.md
 
 # или если kit лежит рядом с проектом:
 # cp -R ../bitrix-docker-kit/template/docker ./docker
 # cp ../bitrix-docker-kit/template/docker-compose.yml ./docker-compose.yml
+# cp ../bitrix-docker-kit/template/docker-compose.https.yml ./docker-compose.https.yml
 # cp ../bitrix-docker-kit/template/docker-compose.platform-amd64.yml ./docker-compose.platform-amd64.yml
+# cp ../bitrix-docker-kit/template/.gitignore ./.gitignore
 # cp ../bitrix-docker-kit/template/.dockerignore ./.dockerignore
 # cp ../bitrix-docker-kit/template/README.Docker.md ./README.Docker.md
 
@@ -528,6 +548,8 @@ cp /path/to/bitrix-docker-kit/examples/php82-mysql80.env .env
 #   COMPOSE_PROJECT_NAME — уникальное имя проекта
 #   PROJECT_DOMAIN — ваш локальный домен
 #   HTTP_PORT — свободный порт на хосте
+#   HTTPS_PORT — свободный HTTPS-порт, если включаете docker-compose.https.yml
+#   HTTPS_DOMAIN — домен для локального HTTPS-сертификата
 #   DB_DATABASE — имя базы данных
 
 # Собрать и запустить
@@ -550,6 +572,111 @@ cp /path/to/bitrix-docker-kit/template/AGENTS.md.example ./AGENTS.md
 ### Если в проекте уже есть docker-compose.yml
 
 Не копируйте `docker-compose.yml` поверх существующего. Лучше объедините сервисы вручную или используйте отдельную папку для Docker Kit.
+
+Если в проекте уже есть `.gitignore`, не перезаписывайте его целиком: добавьте в него правила из `template/.gitignore` для `docker/certs`.
+
+## HTTPS для локального Bitrix
+
+HTTPS не включён по умолчанию. Для включения используется `docker-compose.https.yml`.
+Обычный запуск `docker compose up -d` продолжает поднимать HTTP.
+
+### 1. Установить mkcert
+
+Windows:
+
+```powershell
+choco install mkcert
+mkcert -install
+```
+
+macOS:
+
+```bash
+brew install mkcert
+mkcert -install
+```
+
+Linux:
+
+```bash
+sudo apt install libnss3-tools
+# затем установить mkcert удобным способом для вашей системы
+mkcert -install
+```
+
+### 2. Добавить домен в hosts
+
+Windows:
+
+```text
+C:\Windows\System32\drivers\etc\hosts
+```
+
+Linux/macOS:
+
+```text
+/etc/hosts
+```
+
+Пример:
+
+```text
+127.0.0.1 vegaproject.loc
+```
+
+Не используйте `.dev` для локальных доменов: современные браузеры требуют HTTPS для `.dev` из-за HSTS.
+Рекомендуемые зоны для локальной разработки:
+
+- `.loc`
+- `.test`
+
+### 3. Сгенерировать сертификат
+
+Из корня проекта:
+
+```bash
+mkdir -p docker/certs
+mkcert -cert-file docker/certs/local.crt -key-file docker/certs/local.key vegaproject.loc localhost 127.0.0.1 ::1
+```
+
+Для своего проекта замените `vegaproject.loc` на домен из `.env`.
+Обычно `HTTPS_DOMAIN` совпадает с `PROJECT_DOMAIN`; Nginx не использует envsubst и остаётся с `server_name _;`.
+
+### 4. Запустить с HTTPS
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml up -d
+```
+
+Если `HTTPS_PORT=443`:
+
+```text
+https://vegaproject.loc
+```
+
+Если `HTTPS_PORT=8443`:
+
+```text
+https://vegaproject.loc:8443
+```
+
+### 5. Проверка
+
+```bash
+docker compose logs nginx
+docker compose exec nginx nginx -t
+```
+
+Перед запуском HTTPS должны существовать файлы:
+
+```text
+docker/certs/local.crt
+docker/certs/local.key
+```
+
+Не коммитьте реальные приватные ключи и сертификаты.
+Файлы `docker/certs/*.key`, `docker/certs/*.crt` и `docker/certs/*.pem` должны быть в `.gitignore`.
+В репозитории оставляем только `docker/certs/.gitkeep`.
 
 ## Reverse proxy (перспектива)
 
@@ -575,6 +702,17 @@ http://atomdata.loc
 `HTTP_PORT` и `container_name`).
 
 ## Предупреждения
+
+### Локальные домены
+
+Не используйте `.dev` для локальных доменов: современные браузеры требуют HTTPS для `.dev` из-за HSTS.
+Для локальной разработки используйте `.loc` или `.test`.
+
+### HTTPS-сертификаты
+
+Не коммитьте реальные приватные ключи и сертификаты.
+Файлы `docker/certs/*.key`, `docker/certs/*.crt` и `docker/certs/*.pem` должны быть в `.gitignore`.
+В репозитории оставляем только `docker/certs/.gitkeep`.
 
 ### MySQL 5.7
 

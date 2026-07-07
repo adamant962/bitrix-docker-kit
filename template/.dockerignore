@@ -13,6 +13,12 @@ debug.txt
 AGENTS.md
 opencode.json
 
+# Локальные HTTPS-сертификаты
+docker/certs/*.crt
+docker/certs/*.key
+docker/certs/*.pem
+!docker/certs/.gitkeep
+
 # Docker-файлы не нужны внутри образов
 docker/
 docker-compose.yml
