@@ -303,7 +303,8 @@ bash docker/scripts/fix-permissions.sh
 
 ### Права на этапе установки Bitrix
 
-Если `bitrixsetup.php` показывает:
+Во время установки через `bitrixsetup.php` установщик может писать файлы прямо в document root сайта.
+Если появляется ошибка:
 
 ```text
 file_put_contents(/var/www/html/bitrixsetup.update): Permission denied
@@ -315,14 +316,30 @@ file_put_contents(/var/www/html/bitrixsetup.update): Permission denied
 bash docker/scripts/fix-install-permissions.sh
 ```
 
+или, если скрипты исполняемые:
+
+```bash
+docker/scripts/fix-install-permissions.sh
+```
+
+Скрипт выставляет права так, чтобы файлы могли изменять и PHP-контейнер, и пользователь WSL/IDE.
+Модель прав для локальной разработки: владелец - текущий пользователь WSL, группа - `www-data`, директории - `2775`, файлы - `664`, ACL - `rwX` для пользователя и группы `www-data`.
+
 После завершения установки удалите установочные файлы:
 
 ```bash
-rm -f "${PROJECT_ROOT:-./www}/bitrixsetup.php"
-rm -f "${PROJECT_ROOT:-./www}/bitrixsetup.update"
+rm -f www/bitrixsetup.php
+rm -f www/bitrixsetup.update
 ```
 
-Затем можно выполнить обычный скрипт:
+Если `PROJECT_ROOT=.`:
+
+```bash
+rm -f bitrixsetup.php
+rm -f bitrixsetup.update
+```
+
+Затем можно выполнить обычную настройку прав:
 
 ```bash
 bash docker/scripts/fix-permissions.sh
