@@ -1216,6 +1216,34 @@ http://atomdata.loc
 try_files $uri $uri/ /bitrix/urlrewrite.php?$query_string;
 ```
 
+### Сбиты стили в админке Bitrix
+
+Если в админке частично пропали стили, откройте DevTools -> Network и проверьте CSS/JS-запросы.
+
+Если файлы вида:
+
+```text
+/bitrix/themes/.default/compatible.css
+/bitrix/themes/.default/modules.css
+/bitrix/themes/.default/check-list-style.css
+```
+
+отдают `403`, значит Nginx блокирует директорию `.default` как скрытую.
+
+В Docker Kit уже добавлено исключение для штатных Bitrix `.default` директорий. После изменения Nginx-конфига выполните:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.https.yml restart nginx
+```
+
+И проверьте:
+
+```bash
+curl -k -I https://PROJECT_DOMAIN/bitrix/themes/.default/compatible.css
+```
+
+Ожидаемый ответ — `HTTP/2 200` и `content-type: text/css`, а не `HTTP/2 403`.
+
 ### Белый экран (WSOD)
 
 1. Проверьте логи PHP: `docker compose logs php`
