@@ -15,6 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         unzip \
         curl \
         ca-certificates \
+        msmtp \
+        msmtp-mta \
         git \
         libxml2-dev \
         libicu-dev \
@@ -44,6 +46,9 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-x
 COPY php.ini /usr/local/etc/php/conf.d/bitrix.ini
 COPY opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 COPY xdebug.ini /tmp/xdebug.ini
+COPY msmtprc /etc/msmtprc
+
+RUN chmod 644 /etc/msmtprc
 
 RUN if [ "$ENABLE_XDEBUG" = "1" ]; then \
         pecl install xdebug \

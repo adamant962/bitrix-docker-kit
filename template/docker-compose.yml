@@ -110,5 +110,16 @@ services:
       - db
     restart: unless-stopped
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: ${COMPOSE_PROJECT_NAME:-bitrix}-mailpit
+    profiles:
+      - tools
+    ports:
+      - "${MAILPIT_WEB_PORT:-8025}:8025"
+    expose:
+      - "1025"
+    restart: unless-stopped
+
 volumes:
   db_data:

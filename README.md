@@ -14,6 +14,7 @@ bitrix-docker-kit/
 │   │   ├── scripts/install-mkcert-ca-to-php.sh
 │   │   ├── scripts/show-mkcert-ca.sh
 │   │   ├── scripts/fix-install-permissions.sh
+│   │   ├── php/msmtprc
 │   │   └── certs/.gitkeep       #   каталог для локальных сертификатов
 │   ├── docker-compose.yml       #   Compose-файл (5 сервисов)
 │   ├── docker-compose.https.yml #   override для HTTPS
@@ -87,6 +88,18 @@ HTTPS включается только через `docker-compose.https.yml`; �
 - синхронизацию timezone PHP/MySQL
 - install-friendly таймауты Nginx/PHP
 - права для установки через `fix-install-permissions.sh`
+
+Подробности: `template/README.Docker.md`.
+
+### HTTPS and mail for Bitrix system check
+
+Kit supports local Bitrix system check with:
+
+- mkcert HTTPS certificates
+- nginx network alias for `PROJECT_DOMAIN`
+- `install-mkcert-ca-to-php.sh` for trusting mkcert root CA inside PHP container
+- Mailpit + msmtp for local `mail()` testing
+- no real outbound email delivery required
 
 Подробности: `template/README.Docker.md`.
 
