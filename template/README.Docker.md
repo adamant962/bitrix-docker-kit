@@ -38,6 +38,7 @@ project-root/
 ├── docker-compose.yml                # Основной compose-файл
 ├── docker-compose.https.yml          # Override для HTTPS
 ├── docker-compose.platform-amd64.yml # Override для arm64 → amd64
+├── Makefile                          # Короткие команды make up/build/down
 ├── .env.example                      # Шаблон переменных окружения
 ├── .gitignore                        # Исключения локальных сертификатов
 ├── .dockerignore                     # Исключения для сборки
@@ -642,6 +643,24 @@ docker compose -f docker-compose.yml -f docker-compose.https.yml --profile tools
 
 Если Docker Desktop подписка позволяет, включите Synchronized File Shares для ускорения обмена файлами между macOS и контейнером.
 
+## Makefile
+
+В корне проекта можно использовать короткие команды:
+
+```bash
+make up          # docker compose up -d
+make build       # docker compose up -d --build
+make down        # docker compose down
+make nginx-test  # docker compose exec nginx nginx -t
+make cert        # установить mkcert root CA внутрь PHP-контейнера
+make check-https # проверить HTTPS self-request из PHP
+make clear-cache # очистить кеш Bitrix CSS/JS
+make fix-perms   # исправить права для установки Bitrix
+```
+
+`make up` и `make build` автоматически запускают `docker/scripts/install-mkcert-ca-to-php.sh`, если этот файл есть.
+Все команды используют обычный `docker compose`; compose-файлы и профили берутся из `.env`, если там заданы `COMPOSE_FILE` и `COMPOSE_PROFILES`.
+
 ## Команды для проверки
 
 ```bash
@@ -784,6 +803,7 @@ cp -R /path/to/bitrix-docker-kit/template/docker ./docker
 cp /path/to/bitrix-docker-kit/template/docker-compose.yml ./docker-compose.yml
 cp /path/to/bitrix-docker-kit/template/docker-compose.https.yml ./docker-compose.https.yml
 cp /path/to/bitrix-docker-kit/template/docker-compose.platform-amd64.yml ./docker-compose.platform-amd64.yml
+cp /path/to/bitrix-docker-kit/template/Makefile ./Makefile
 cp /path/to/bitrix-docker-kit/template/.gitignore ./.gitignore
 cp /path/to/bitrix-docker-kit/template/.dockerignore ./.dockerignore
 cp /path/to/bitrix-docker-kit/template/README.Docker.md ./README.Docker.md
@@ -793,6 +813,7 @@ cp /path/to/bitrix-docker-kit/template/README.Docker.md ./README.Docker.md
 # cp ../bitrix-docker-kit/template/docker-compose.yml ./docker-compose.yml
 # cp ../bitrix-docker-kit/template/docker-compose.https.yml ./docker-compose.https.yml
 # cp ../bitrix-docker-kit/template/docker-compose.platform-amd64.yml ./docker-compose.platform-amd64.yml
+# cp ../bitrix-docker-kit/template/Makefile ./Makefile
 # cp ../bitrix-docker-kit/template/.gitignore ./.gitignore
 # cp ../bitrix-docker-kit/template/.dockerignore ./.dockerignore
 # cp ../bitrix-docker-kit/template/README.Docker.md ./README.Docker.md
