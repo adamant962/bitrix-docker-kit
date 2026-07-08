@@ -1,193 +1,196 @@
 {
-    "$schema": "https://opencode.ai/config.json",
-    "model": "openmodel-deepseek/deepseek-v4-flash",
-    "default_agent": "bitrix-coder",
-    "instructions": [
-        ".opencode/instructions/*.md"
-    ],
-    "permission": {
+  "$schema": "https://opencode.ai/config.json",
+  "model": "openmodel-deepseek/deepseek-v4-flash",
+  "default_agent": "bitrix-coder",
+  "instructions": [
+    ".opencode/instructions/*.md"
+  ],
+  "permission": {
+    "bash": {
+      "*": "ask",
+      "Test-Path *": "allow",
+      "Get-ItemProperty *": "allow",
+      "Get-ChildItem *": "allow",
+      "Format-Table *": "allow",
+      "pwd": "allow",
+      "ls *": "allow",
+      "find *": "allow",
+      "grep *": "allow",
+      "php -v": "allow",
+      "php -l *": "allow",
+      "*php.exe* -l *": "allow",
+      "*php* -l *": "allow",
+      "*fill-sprint-content.php*--self-test*": "allow",
+      "*fill-sprint-content.php*--registry*": "allow",
+      "*fill-sprint-content.php*--mode=quality-report*": "allow",
+      "*fill-sprint-content.php*--mode=dry-run*": "allow",
+      "*fill-sprint-content.php*--mode=verify*": "allow",
+      "*fill-sprint-content.php*--mode=replace*": "ask",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git diff --stat*": "allow",
+      "git diff --check*": "allow",
+      "Remove-Item *": "ask",
+      "rm *": "deny",
+      "del *": "deny",
+      "git reset *": "ask",
+      "git checkout *": "ask",
+      "git push *": "deny"
+    },
+    "skill": {
+      "*": "deny",
+      "bitrix-docs": "allow",
+      "sprint-editor": "allow"
+    }
+  },
+  "agent": {
+    "build": {
+      "permission": {
         "bash": {
-            "*": "ask",
-
-            "Test-Path *": "allow",
-            "Get-ItemProperty *": "allow",
-            "Get-ChildItem *": "allow",
-            "Format-Table *": "allow",
-            "pwd": "allow",
-            "ls *": "allow",
-            "find *": "allow",
-            "grep *": "allow",
-
-            "php -v": "allow",
-            "php -l *": "allow",
-            "*php.exe* -l *": "allow",
-            "*php* -l *": "allow",
-
-            "*fill-sprint-content.php*--self-test*": "allow",
-            "*fill-sprint-content.php*--registry*": "allow",
-            "*fill-sprint-content.php*--mode=quality-report*": "allow",
-            "*fill-sprint-content.php*--mode=dry-run*": "allow",
-            "*fill-sprint-content.php*--mode=verify*": "allow",
-
-            "*fill-sprint-content.php*--mode=replace*": "ask",
-
-            "git status*": "allow",
-            "git diff*": "allow",
-            "git log*": "allow",
-            "git diff --stat*": "allow",
-            "git diff --check*": "allow",
-
-            "Remove-Item *": "ask",
-            "rm *": "deny",
-            "del *": "deny",
-            "git reset *": "ask",
-            "git checkout *": "ask",
-            "git push *": "deny"
+          "*": "ask",
+          "Test-Path *": "allow",
+          "Get-ItemProperty *": "allow",
+          "Get-ChildItem *": "allow",
+          "Format-Table *": "allow",
+          "pwd": "allow",
+          "ls *": "allow",
+          "find *": "allow",
+          "grep *": "allow",
+          "php -v": "allow",
+          "php -l *": "allow",
+          "*php.exe* -l *": "allow",
+          "*php* -l *": "allow",
+          "*fill-sprint-content.php*--self-test*": "allow",
+          "*fill-sprint-content.php*--registry*": "allow",
+          "*fill-sprint-content.php*--mode=quality-report*": "allow",
+          "*fill-sprint-content.php*--mode=dry-run*": "allow",
+          "*fill-sprint-content.php*--mode=verify*": "allow",
+          "*fill-sprint-content.php*--mode=replace*": "ask",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "git diff --stat*": "allow",
+          "git diff --check*": "allow",
+          "Remove-Item *": "ask",
+          "rm *": "deny",
+          "del *": "deny",
+          "git reset *": "ask",
+          "git checkout *": "ask",
+          "git push *": "deny"
+        },
+        "task": {
+          "*": "deny",
+          "bitrix-explorer": "allow",
+          "bitrix-reviewer": "allow",
+          "frontend-bitrix-agent": "allow",
+          "sprint-editor-reviewer": "allow",
+          "sprint-editor-coder": "allow",
+          "php-linter": "allow",
+          "git-helper": "allow",
+          "bitrix-scout": "allow"
         },
         "skill": {
-            "*": "deny",
-            "bitrix-docs": "allow",
-            "sprint-editor": "allow"
+          "*": "deny",
+          "bitrix-docs": "allow",
+          "sprint-editor": "allow"
         }
+      }
     },
-    "agent": {
-        "build": {
-            "permission": {
-                "bash": {
-                    "*": "ask",
-
-                    "Test-Path *": "allow",
-                    "Get-ItemProperty *": "allow",
-                    "Get-ChildItem *": "allow",
-                    "Format-Table *": "allow",
-                    "pwd": "allow",
-                    "ls *": "allow",
-                    "find *": "allow",
-                    "grep *": "allow",
-
-                    "php -v": "allow",
-                    "php -l *": "allow",
-                    "*php.exe* -l *": "allow",
-                    "*php* -l *": "allow",
-
-                    "*fill-sprint-content.php*--self-test*": "allow",
-                    "*fill-sprint-content.php*--registry*": "allow",
-                    "*fill-sprint-content.php*--mode=quality-report*": "allow",
-                    "*fill-sprint-content.php*--mode=dry-run*": "allow",
-                    "*fill-sprint-content.php*--mode=verify*": "allow",
-
-                    "*fill-sprint-content.php*--mode=replace*": "ask",
-
-                    "git status*": "allow",
-                    "git diff*": "allow",
-                    "git log*": "allow",
-                    "git diff --stat*": "allow",
-                    "git diff --check*": "allow",
-
-                    "Remove-Item *": "ask",
-                    "rm *": "deny",
-                    "del *": "deny",
-                    "git reset *": "ask",
-                    "git checkout *": "ask",
-                    "git push *": "deny"
-                },
-                "task": {
-                    "*": "deny",
-                    "bitrix-explorer": "allow",
-                    "bitrix-reviewer": "allow",
-                    "frontend-bitrix-agent": "allow",
-                    "sprint-editor-reviewer": "allow",
-                    "sprint-editor-coder": "allow",
-                    "php-linter": "allow",
-                    "git-helper": "allow",
-                    "bitrix-scout": "allow"
-                },
-                "skill": {
-                    "*": "deny",
-                    "bitrix-docs": "allow",
-                    "sprint-editor": "allow"
-                }
-            }
+    "plan": {
+      "permission": {
+        "read": "allow",
+        "list": "allow",
+        "glob": "allow",
+        "grep": "allow",
+        "lsp": "allow",
+        "todowrite": "allow",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "edit": "deny",
+        "bash": {
+          "*": "ask",
+          "pwd": "allow",
+          "ls *": "allow",
+          "find *": "allow",
+          "grep *": "allow",
+          "Test-Path *": "allow",
+          "Get-ItemProperty *": "allow",
+          "Get-ChildItem *": "allow",
+          "Format-Table *": "allow",
+          "php -v": "allow",
+          "php -l *": "allow",
+          "*php.exe* -l *": "allow",
+          "*php* -l *": "allow",
+          "*fill-sprint-content.php*--self-test*": "allow",
+          "*fill-sprint-content.php*--registry*": "allow",
+          "*fill-sprint-content.php*--mode=quality-report*": "allow",
+          "*fill-sprint-content.php*--mode=dry-run*": "allow",
+          "*fill-sprint-content.php*--mode=verify*": "allow",
+          "*fill-sprint-content.php*--mode=replace*": "ask",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "git diff --stat*": "allow",
+          "git diff --check*": "allow",
+          "Remove-Item *": "ask",
+          "rm *": "deny",
+          "del *": "deny",
+          "git reset *": "ask",
+          "git checkout *": "ask",
+          "git push *": "deny"
         },
-        "plan": {
-            "permission": {
-                "read": "allow",
-                "list": "allow",
-                "glob": "allow",
-                "grep": "allow",
-                "lsp": "allow",
-                "todowrite": "allow",
-                "webfetch": "allow",
-                "websearch": "allow",
-                "edit": "deny",
-                "bash": {
-                    "*": "ask",
-
-                    "pwd": "allow",
-                    "ls *": "allow",
-                    "find *": "allow",
-                    "grep *": "allow",
-                    "Test-Path *": "allow",
-                    "Get-ItemProperty *": "allow",
-                    "Get-ChildItem *": "allow",
-                    "Format-Table *": "allow",
-
-                    "php -v": "allow",
-                    "php -l *": "allow",
-                    "*php.exe* -l *": "allow",
-                    "*php* -l *": "allow",
-
-                    "*fill-sprint-content.php*--self-test*": "allow",
-                    "*fill-sprint-content.php*--registry*": "allow",
-                    "*fill-sprint-content.php*--mode=quality-report*": "allow",
-                    "*fill-sprint-content.php*--mode=dry-run*": "allow",
-                    "*fill-sprint-content.php*--mode=verify*": "allow",
-
-                    "*fill-sprint-content.php*--mode=replace*": "ask",
-
-                    "git status*": "allow",
-                    "git diff*": "allow",
-                    "git log*": "allow",
-                    "git diff --stat*": "allow",
-                    "git diff --check*": "allow",
-
-                    "Remove-Item *": "ask",
-                    "rm *": "deny",
-                    "del *": "deny",
-                    "git reset *": "ask",
-                    "git checkout *": "ask",
-                    "git push *": "deny"
-                },
-                "task": {
-                    "*": "deny",
-                    "bitrix-explorer": "allow",
-                    "bitrix-reviewer": "allow",
-                    "frontend-bitrix-agent": "allow",
-                    "sprint-editor-reviewer": "allow",
-                    "php-linter": "allow",
-                    "bitrix-scout": "allow"
-                },
-                "skill": {
-                    "*": "deny",
-                    "bitrix-docs": "allow",
-                    "sprint-editor": "allow"
-                }
-            }
+        "task": {
+          "*": "deny",
+          "bitrix-explorer": "allow",
+          "bitrix-reviewer": "allow",
+          "frontend-bitrix-agent": "allow",
+          "sprint-editor-reviewer": "allow",
+          "php-linter": "allow",
+          "bitrix-scout": "allow"
+        },
+        "skill": {
+          "*": "deny",
+          "bitrix-docs": "allow",
+          "sprint-editor": "allow"
         }
-    },
-    "provider": {
-        "openmodel-deepseek": {
-            "npm": "@ai-sdk/anthropic",
-            "name": "OpenModel DeepSeek",
-            "options": {
-                "baseURL": "https://api.openmodel.ai/v1",
-                "apiKey": "{env:OPENMODEL_API_KEY}"
-            },
-            "models": {
-                "deepseek-v4-flash": {
-                    "name": "DeepSeek V4 Flash"
-                }
-            }
-        }
+      }
     }
+  },
+  "mcp": {
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "enabled": true
+    },
+    "context7": {
+      "type": "remote",
+      "url": "https://mcp.context7.com/mcp",
+      "enabled": true
+    },
+    "gh_grep": {
+      "type": "remote",
+      "url": "https://mcp.grep.app",
+      "enabled": false
+    }
+  },
+  "provider": {
+    "openmodel-deepseek": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "OpenModel DeepSeek",
+      "options": {
+        "baseURL": "https://api.openmodel.ai/v1",
+        "apiKey": "{env:OPENMODEL_API_KEY}"
+      },
+      "models": {
+        "deepseek-v4-flash": {
+          "name": "DeepSeek V4 Flash"
+        }
+      }
+    }
+  }
 }
