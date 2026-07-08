@@ -19,6 +19,7 @@ bitrix-docker-kit/
 │   ├── docker-compose.yml       #   Compose-файл (5 сервисов)
 │   ├── docker-compose.https.yml #   override для HTTPS
 │   ├── docker-compose.platform-amd64.yml
+│   ├── Makefile                 #   короткие команды make up/build/down
 │   ├── .env.example             #   шаблон переменных окружения
 │   ├── .gitignore               #   исключения локальных сертификатов
 │   ├── .dockerignore
